@@ -8,6 +8,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV
 import joblib
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+
 
 # Fetch SPY data from 1993-01-29 to today
 data = yf.download("SPY", start="1993-01-29")
@@ -207,3 +210,41 @@ loaded_model = joblib.load('spy_price_predictor_model.pkl')
 predictions = loaded_model.predict(X_test)
 print(f"Predictions with Loaded Model: {predictions[:5]}")
 
+
+
+model = Sequential()
+
+# Adding LSTM layer
+model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+model.add(Dropout(0.2))
+
+# Adding another LSTM layer
+model.add(LSTM(units=50, return_sequences=False))
+model.add(Dropout(0.2))
+
+# Adding output layer
+model.add(Dense(units=1))  # Predict the next day's price
+
+# Compile the model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+model = Sequential()
+
+# Adding GRU layer
+model.add(GRU(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+model.add(Dropout(0.2))
+
+# Adding another GRU layer
+model.add(GRU(units=50, return_sequences=False))
+model.add(Dropout(0.2))
+
+# Adding output layer
+model.add(Dense(units=1))  # Predict the next day's price
+
+# Compile the model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_val, y_val))
+
+y_pred = model.predict(X_test)
+# Calculate RMSE or MAE
